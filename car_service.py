@@ -32,8 +32,8 @@ def display(cam_setting):
 
 if __name__ == '__main__':
     camera_setting = 0
-    camera_setting = 'sample1.mp4'
+    # camera_setting = 'sample3.mp4'
     # camera_setting = 'rtsp://admin:admin@192.168.2.188:554/cam/realmonitor?channel=1&subtype=0'
-    # camera_setting = 'image20.jpg'
+    camera_setting = 'image2.jpg'
 
     display(camera_setting)

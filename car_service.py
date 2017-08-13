@@ -14,8 +14,8 @@ def display(cam_setting):
 
         if image is not None:
             img_height, img_width = image.shape[:2]
-            if img_width > 800:
-                img_resize = cv2.resize(image, (800, int(img_height*800/img_width)), interpolation=cv2.INTER_AREA)
+            if img_width > 720:
+                img_resize = cv2.resize(image, (720, int(img_height*720/img_width)), interpolation=cv2.INTER_AREA)
             else:
                 img_resize = image
 
@@ -34,6 +34,6 @@ if __name__ == '__main__':
     camera_setting = 0
     # camera_setting = 'sample3.mp4'
     # camera_setting = 'rtsp://admin:admin@192.168.2.188:554/cam/realmonitor?channel=1&subtype=0'
-    camera_setting = 'image2.jpg'
+    # camera_setting = 'image2.jpg'
 
     display(camera_setting)

@@ -1,20 +1,32 @@
 RootWidget:
+    btn_start: Button_start
+    btn_record: Button_record
+    img_video: video_player
+
     BoxLayout:
         orientation: 'vertical'
-        BoxLayout:
-            id: screen
 
-            MyVideoPlayer:
-                id: video_player
+        Image:
+            id: video_player
 
         BoxLayout:
             id: menu
             size_hint: None, None
-            size : 100, 50
+            size : 600, 50
             orientation: 'horizontal'
+
             Button:
-                text: 'start'
+                id: Button_start
+                text: 'Pause'
                 on_release: root.on_btn_start()
+
             Button:
-                text: 'stop'
-                on_release: root.on_btn_stop()
+                id: Button_record
+                text: 'Record'
+                on_release: root.on_btn_record()
+
+            Button:
+                text: 'Setting'
+
+            Button:
+                text: 'Exit'

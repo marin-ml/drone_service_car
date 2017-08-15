@@ -3,7 +3,7 @@ Screen:
 
     GridLayout:
         rows: 1
-        padding: (80, 10)
+        padding: (80, 15)
         spacing: 50
 
         size_hint_y: None
@@ -27,4 +27,4 @@ Screen:
         Button:
             text: 'Exit'
             font_size: 24
-            on_release: exit(0)
+            on_release: app.on_exit()

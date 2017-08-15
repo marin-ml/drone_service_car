@@ -42,6 +42,10 @@ class BestApp(App):
 
         self.fps = 30
         self.cam_ind = 0
+        self.str_src = ['Web Camera',
+                        'IP Camera',
+                        'Video',
+                        'Image']
         self.cam_src = ['0',
                         'rtsp://admin:admin@192.168.2.188:554/cam/realmonitor?channel=1&subtype=0',
                         'Sample_video/sample1.mp4',
@@ -72,9 +76,14 @@ class BestApp(App):
 
         self.record_mode = not self.record_mode
 
+    def on_exit(self):
+        self.on_close()
+        exit(0)
+
     # ---------------------- Camera setting module ------------------------
     def go_setting(self):
         self.txt_cam_setting = self.cam_setting
+        self.title = 'Setting'
         self.go_screen('dlg_setting', 'left')
 
     def on_sel_cam(self, cam_sel):
@@ -86,11 +95,19 @@ class BestApp(App):
         self.cam_setting = cam_setting
         self._init_cv()
         self.on_resume()
+        self.title = 'Camera View'
+        self.go_screen('dlg_menu', 'right')
+
+    def on_return(self):
+        self.title = 'Camera View'
         self.go_screen('dlg_menu', 'right')
 
     # ------------------------ Image Processing -------------------------------
     def _init_cv(self):
-        self.capture = cv2.VideoCapture(self.cam_setting)
+        if self.cam_setting == '0':
+            self.capture = cv2.VideoCapture(0)
+        else:
+            self.capture = cv2.VideoCapture(self.cam_setting)
         if not self.capture.isOpened():
             print('Failed to get source of CV')
         else:

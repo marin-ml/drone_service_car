@@ -1,0 +1,30 @@
+Screen:
+    name: 'dlg_menu'
+
+    GridLayout:
+        rows: 1
+        padding: (80, 10)
+        spacing: 50
+
+        size_hint_y: None
+        height: 80
+
+        Button:
+            text: app.btn_start_text
+            font_size: 24
+            on_release: app.on_btn_start()
+
+        Button:
+            text: app.btn_record_text
+            font_size: 24
+            on_release: app.on_btn_record()
+
+        Button:
+            text: 'Setting'
+            font_size: 24
+            on_release: app.go_setting()
+
+        Button:
+            text: 'Exit'
+            font_size: 24
+            on_release: exit(0)

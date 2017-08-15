@@ -1,0 +1,112 @@
+Screen:
+    name: 'dlg_setting'
+
+    canvas:
+        Rectangle:
+            pos: 0, 0
+            size: root.width, root.height
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 50
+        spacing: 50
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 20
+
+            Label
+                text: 'Video Source'
+                color: (0, 0, 0.5, 1)
+                font_size: 36
+
+            BoxLayout:
+                spacing: 10
+
+                ToggleButton:
+                    group: 'cam_src'
+                    text: 'Web Camera'
+                    font_size: 24
+                    state: 'down'
+                    on_press: app.on_sel_cam(0)
+
+                ToggleButton:
+                    group: 'cam_src'
+                    text: 'IP Camera'
+                    font_size: 24
+                    on_press: app.on_sel_cam(1)
+
+                ToggleButton:
+                    group: 'cam_src'
+                    text: 'Video'
+                    font_size: 24
+                    on_press: app.on_sel_cam(2)
+
+                ToggleButton:
+                    group: 'cam_src'
+                    text: 'Image'
+                    font_size: 24
+                    on_press: app.on_sel_cam(3)
+
+            TextInput
+                id: txt_source
+                text: app.txt_cam_setting
+                font_size: 20
+                multiline: False
+                size_hint_y: None
+                height: 40
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 20
+
+            Label
+                text: 'Service Selection'
+                color: (0, 0, 0.5, 1)
+                font_size: 36
+
+            BoxLayout:
+                ToggleButton:
+                    group: 'service'
+                    text: 'None'
+                    font_size: 24
+                    state: 'down'
+                    #on_press: txt_source.text='0'
+
+                ToggleButton:
+                    group: 'service'
+                    text: 'Face Detection'
+                    font_size: 24
+                    #on_press: txt_source.text='rtsp://admin:admin@192.168.2.188:554/cam/realmonitor?channel=1&subtype=0'
+
+                ToggleButton:
+                    group: 'service'
+                    text: 'Car Detection'
+                    font_size: 24
+                    #on_press: txt_source.text='Sample_video/sample1.mp4'
+
+                ToggleButton:
+                    group: 'service'
+                    text: 'Other'
+                    font_size: 24
+                    #on_press: txt_source.text='sample_Image/image2.jpg'
+
+            TextInput
+                font_size: 20
+                multiline: False
+                size_hint_y: None
+                height: 40
+
+        GridLayout:
+            cols: 2
+            spacing: 200
+            size_hint_y: 0.3
+            padding: (100, 0)
+            Button:
+                text: "Set"
+                font_size: 26
+                on_release: app.on_cam_set(txt_source.text)
+            Button:
+                text: "Return"
+                font_size: 26
+                on_release: app.go_screen('best_menu', 'right')

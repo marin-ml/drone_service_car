@@ -40,6 +40,9 @@ class BestApp(App):
         self.btn_start_text = 'Pause'
         self.btn_record_text = 'Record'
 
+        cascade_face = 'models/haarcascade_frontalface_default.xml'
+        self.faceCascade = cv2.CascadeClassifier(cascade_face)
+
         self.fps = 30
         self.cam_ind = 0
         self.str_src = ['Web Camera',
@@ -58,7 +61,6 @@ class BestApp(App):
         super(BestApp, self).__init__(**kwargs)
 
     def on_btn_start(self):
-        self.title = "1"
         if self.run_mode:
             self.btn_start_text = 'Resume'
             self.on_stop()
@@ -116,7 +118,6 @@ class BestApp(App):
             # self.fps = self.capture.get(cv2.CV_CAP_PROP_FPS)
 
     def on_resume(self):
-        # self._init_cv()
         if self.event_take_video is None:
             self.event_take_video = Clock.schedule_interval(self.get_frame, 1.0 / self.fps)
         elif not self.event_take_video.is_triggered:
@@ -129,6 +130,17 @@ class BestApp(App):
     def get_frame(self, *args):
         ret, frame = self.capture.read()
         if ret:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = self.faceCascade.detectMultiScale(
+                gray,
+                scaleFactor=1.1,
+                minNeighbors=5,
+                minSize=(80, 80),
+                flags=2)
+
+            for (x, y, w, h) in faces:
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
             self.frame_to_buf(frame=frame)
         else:
             self.root.ids.img_video.source = 'Sample_Image/Background.jpg'

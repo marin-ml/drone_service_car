@@ -71,25 +71,25 @@ Screen:
                     text: 'None'
                     font_size: 24
                     state: 'down'
-                    #on_press: txt_source.text='0'
+                    on_press: app.on_sel_pro(0)
 
                 ToggleButton:
                     group: 'service'
                     text: 'Face Detection'
                     font_size: 24
-                    #on_press: txt_source.text='rtsp://admin:admin@192.168.2.188:554/cam/realmonitor?channel=1&subtype=0'
+                    on_press: app.on_sel_pro(1)
 
                 ToggleButton:
                     group: 'service'
                     text: 'Car Detection'
                     font_size: 24
-                    #on_press: txt_source.text='Sample_video/sample1.mp4'
+                    on_press: app.on_sel_pro(2)
 
                 ToggleButton:
                     group: 'service'
                     text: 'Other'
                     font_size: 24
-                    #on_press: txt_source.text='sample_Image/image2.jpg'
+                    on_press: app.on_sel_pro(3)
 
             TextInput
                 font_size: 20

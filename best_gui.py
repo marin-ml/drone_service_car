@@ -12,21 +12,8 @@ class BestApp(App):
 
     screen_names = ListProperty([])
     screens = {}  # Dict of all screens
-    display1 = StringProperty()
-    display2 = StringProperty()
-    display3 = StringProperty()
-    display4 = StringProperty()
-    display5 = StringProperty()
-    display6 = StringProperty()
-    display7 = StringProperty()
-    display8 = StringProperty()
-    display9 = StringProperty()
-    display10 = StringProperty()
-    display11 = StringProperty()
 
     title = StringProperty()
-    compName = StringProperty()
-
     btn_start_text = StringProperty()
     btn_record_text = StringProperty()
     txt_cam_setting = StringProperty()
@@ -40,11 +27,12 @@ class BestApp(App):
         self.btn_start_text = 'Pause'
         self.btn_record_text = 'Record'
 
-        cascade_face = 'models/haarcascade_frontalface_default.xml'
-        self.faceCascade = cv2.CascadeClassifier(cascade_face)
+        self.faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
+        self.carCascade = cv2.CascadeClassifier('models/cars.xml')
 
         self.fps = 30
         self.cam_ind = 0
+        self.pro_ind = 0
         self.str_src = ['Web Camera',
                         'IP Camera',
                         'Video',
@@ -60,6 +48,7 @@ class BestApp(App):
         self.on_resume()
         super(BestApp, self).__init__(**kwargs)
 
+    # --------------------------- Main Menu Event -----------------------------
     def on_btn_start(self):
         if self.run_mode:
             self.btn_start_text = 'Resume'
@@ -78,19 +67,22 @@ class BestApp(App):
 
         self.record_mode = not self.record_mode
 
-    def on_exit(self):
-        self.on_close()
-        exit(0)
-
-    # ---------------------- Camera setting module ------------------------
     def go_setting(self):
         self.txt_cam_setting = self.cam_setting
         self.title = 'Setting'
         self.go_screen('dlg_setting', 'left')
 
+    def on_exit(self):
+        self.on_close()
+        exit(0)
+
+    # ---------------------- Camera Setting dialog Event ------------------------
     def on_sel_cam(self, cam_sel):
         self.cam_ind = cam_sel
         self.txt_cam_setting = self.cam_src[cam_sel]
+
+    def on_sel_pro(self, pro_sel):
+        self.pro_ind = pro_sel
 
     def on_cam_set(self, cam_setting):
         self.cam_src[self.cam_ind] = cam_setting
@@ -130,16 +122,29 @@ class BestApp(App):
     def get_frame(self, *args):
         ret, frame = self.capture.read()
         if ret:
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            faces = self.faceCascade.detectMultiScale(
-                gray,
-                scaleFactor=1.1,
-                minNeighbors=5,
-                minSize=(80, 80),
-                flags=2)
+            if self.pro_ind == 1:
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                faces = self.faceCascade.detectMultiScale(
+                    gray,
+                    scaleFactor=1.1,
+                    minNeighbors=5,
+                    minSize=(80, 80),
+                    flags=2)
 
-            for (x, y, w, h) in faces:
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                for (x, y, w, h) in faces:
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+            elif self.pro_ind == 2:
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                cars = self.carCascade.detectMultiScale(
+                    gray,
+                    scaleFactor=1.1,
+                    minNeighbors=5,
+                    minSize=(30, 30),
+                    flags=2)
+
+                for (x, y, w, h) in cars:
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
             self.frame_to_buf(frame=frame)
         else:

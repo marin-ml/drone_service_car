@@ -28,7 +28,7 @@ class BestApp(App):
         self.btn_record_text = 'Record'
 
         self.faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
-        self.carCascade = cv2.CascadeClassifier('models/cars.xml')
+        self.carCascade = cv2.CascadeClassifier('models/cars1.xml')
 
         self.fps = 30
         self.cam_ind = 0
@@ -121,26 +121,28 @@ class BestApp(App):
 
     def get_frame(self, *args):
         ret, frame = self.capture.read()
+
         if ret:
+            frame = cv2.resize(frame, (720, 576))
+            # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = frame
             if self.pro_ind == 1:
-                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 faces = self.faceCascade.detectMultiScale(
                     gray,
                     scaleFactor=1.1,
                     minNeighbors=5,
-                    minSize=(80, 80),
+                    minSize=(50, 50),
                     flags=2)
 
                 for (x, y, w, h) in faces:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
             elif self.pro_ind == 2:
-                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 cars = self.carCascade.detectMultiScale(
                     gray,
                     scaleFactor=1.1,
                     minNeighbors=5,
-                    minSize=(30, 30),
+                    minSize=(20, 20),
                     flags=2)
 
                 for (x, y, w, h) in cars:
@@ -148,7 +150,7 @@ class BestApp(App):
 
             self.frame_to_buf(frame=frame)
         else:
-            self.root.ids.img_video.source = 'Sample_Image/Background.jpg'
+            self.root.ids.img_video.source = 'logo/Background.jpg'
             self.event_take_video.cancel()
             Clock.unschedule(self.event_take_video)
             self.event_take_video = None
@@ -182,4 +184,5 @@ if __name__ == '__main__':
     Config.set('graphics', 'width', '1000')
     Config.set('graphics', 'height', '700')
     Config.set('graphics', 'resizable', 0)
+    Config.set('kivy', 'window_icon', 'logo/favicon.ico')
     BestApp().run()

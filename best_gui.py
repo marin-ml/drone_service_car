@@ -6,6 +6,7 @@ from kivy.properties import ListProperty, StringProperty
 import cv2
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
+from car_dect_knn import MoveDetection
 
 
 class BestApp(App):
@@ -27,8 +28,9 @@ class BestApp(App):
         self.btn_start_text = 'Pause'
         self.btn_record_text = 'Record'
 
-        self.faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
         self.carCascade = cv2.CascadeClassifier('models/cars1.xml')
+
+        self.class_yolo = MoveDetection()
 
         self.fps = 30
         self.cam_ind = 0
@@ -124,22 +126,10 @@ class BestApp(App):
 
         if ret:
             frame = cv2.resize(frame, (720, 576))
-            # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            gray = frame
+
             if self.pro_ind == 1:
-                faces = self.faceCascade.detectMultiScale(
-                    gray,
-                    scaleFactor=1.1,
-                    minNeighbors=5,
-                    minSize=(50, 50),
-                    flags=2)
-
-                for (x, y, w, h) in faces:
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-
-            elif self.pro_ind == 2:
                 cars = self.carCascade.detectMultiScale(
-                    gray,
+                    frame,
                     scaleFactor=1.1,
                     minNeighbors=5,
                     minSize=(20, 20),
@@ -147,6 +137,12 @@ class BestApp(App):
 
                 for (x, y, w, h) in cars:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+            elif self.pro_ind == 2:
+                _, cars = self.class_yolo.detect_cars(frame)
+
+                for (x1, y1, x2, y2) in cars:
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
             self.frame_to_buf(frame=frame)
         else:

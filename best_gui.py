@@ -7,6 +7,7 @@ import cv2
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from car_dect_knn import MoveDetection
+from car_dect_dense import GunnarDetection
 
 
 class BestApp(App):
@@ -31,6 +32,8 @@ class BestApp(App):
         self.carCascade = cv2.CascadeClassifier('models/cars1.xml')
 
         self.class_yolo = MoveDetection()
+        self.class_dense0 = GunnarDetection(0)
+        self.class_dense1 = GunnarDetection(1)
 
         self.fps = 30
         self.cam_ind = 0
@@ -127,6 +130,7 @@ class BestApp(App):
         if ret:
             frame = cv2.resize(frame, (720, 576))
 
+            # ---------------- case of haar cascade car detection ----------------------
             if self.pro_ind == 1:
                 cars = self.carCascade.detectMultiScale(
                     frame,
@@ -138,11 +142,28 @@ class BestApp(App):
                 for (x, y, w, h) in cars:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
+            # ------------------- case of BackgroundSubtractorKNN -----------------------
             elif self.pro_ind == 2:
                 _, cars = self.class_yolo.detect_cars(frame)
 
                 for (x1, y1, x2, y2) in cars:
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
+            # ----------------------- case of Gunar Dense method 1 ------------------------
+            elif self.pro_ind == 3:
+                cars = self.class_dense0.opt_flow_GUNNAR(frame)
+
+                if cars is not None:
+                    for (x1, y1, x2, y2) in cars:
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
+            # ----------------------- case of Gunar Dense method 2 ------------------------
+            elif self.pro_ind == 3:
+                cars = self.class_dense1.opt_flow_GUNNAR(frame)
+
+                if cars is not None:
+                    for (x1, y1, x2, y2) in cars:
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
             self.frame_to_buf(frame=frame)
         else:

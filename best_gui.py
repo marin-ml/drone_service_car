@@ -203,4 +203,3 @@ if __name__ == '__main__':
     Config.set('graphics', 'resizable', 0)
     Config.set('kivy', 'window_icon', 'logo/favicon.ico')
     BestApp().run()
-

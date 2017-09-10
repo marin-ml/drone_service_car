@@ -8,6 +8,7 @@ from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from car_dect_knn import MoveDetection
 from car_dect_dense import GunnarDetection
+import math
 
 
 class BestApp(App):
@@ -38,10 +39,16 @@ class BestApp(App):
         self.fps = 30
         self.cam_ind = 0
         self.pro_ind = 0
+        self.speed_threshold = 100
 
         self.service_speed = False
         self.service_count = False
         self.service_alarm = False
+        self.cars_prev = []
+
+        self.red = (0, 0, 255)
+        self.blue = (255, 0, 0)
+        self.white = (255, 255, 255)
 
         self.str_src = ['Web Camera',
                         'IP Camera',
@@ -143,41 +150,55 @@ class BestApp(App):
         if ret:
             frame = cv2.resize(frame, (720, 576))
 
-            # ---------------- case of haar cascade car detection ----------------------
             if self.pro_ind == 0:
                 pass
-            elif self.pro_ind == 1:
-                cars = self.carCascade.detectMultiScale(
-                    frame,
-                    scaleFactor=1.1,
-                    minNeighbors=5,
-                    minSize=(20, 20),
-                    flags=2)
-
-                for (x, y, w, h) in cars:
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
             else:
-                # ------------------- case of BackgroundSubtractorKNN -----------------------
-                if self.pro_ind == 2:
+
+                # ------------------------ Detect cars and Get rect list of cars ------------------------
+                if self.pro_ind == 1:       # case of haar cascade car detection
+                    cars_detect = self.carCascade.detectMultiScale(frame, scaleFactor=1.1, minNeighbors=5,
+                                                                   minSize=(20, 20), flags=2)
+                    cars = []
+                    for (x, y, w, h) in cars_detect:
+                        cars.append((x, y, (x + w), (y + h)))
+
+                elif self.pro_ind == 2:     # case of BackgroundSubtractorKNN
                     _, cars = self.class_yolo.detect_cars(frame)
 
-                # ----------------------- case of Gunar Dense method 1 ------------------------
-                elif self.pro_ind == 3:
+                elif self.pro_ind == 3:     # case of Gunar Dense method 1
                     cars = self.class_dense0.opt_flow_GUNNAR(frame)
 
-                # ----------------------- case of Gunar Dense method 2 ------------------------
-                elif self.pro_ind == 4:
+                elif self.pro_ind == 4:     # case of Gunar Dense method 2
                     cars = self.class_dense1.opt_flow_GUNNAR(frame)
 
+                # ------------------------------------ Cars Service ---------------------------------------
                 if cars is not None:
                     cars = self.filter_car(cars)
-                    for (x1, y1, x2, y2) in cars:
-                        cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                    for new_car in cars:
+                        cv2.rectangle(frame, (new_car[0], new_car[1]), (new_car[2], new_car[3]), self.blue, 2)
+
+                        if self.service_speed:
+                            closest_car = self.closest_distance(new_car, self.cars_prev)
+
+                            if closest_car > 150:
+                                pass
+                            elif self.service_alarm and closest_car >= self.speed_threshold:
+                                cv2.rectangle(frame, (80, 20), (160, 20), self.red, 42)
+                                cv2.rectangle(frame, (80, 20), (160, 20), self.white, 40)
+                                cv2.putText(frame, 'Alarm!', (70, 30), cv2.FONT_HERSHEY_DUPLEX, 1, self.red, 2)
+                                cv2.putText(frame, str(closest_car), (new_car[0], new_car[1]),
+                                            cv2.FONT_HERSHEY_DUPLEX, 1, self.red, 1)
+                                cv2.rectangle(frame, (new_car[0], new_car[1]), (new_car[2], new_car[3]), self.red, 2)
+                            else:
+                                cv2.putText(frame, str(closest_car), (new_car[0], new_car[1]),
+                                            cv2.FONT_HERSHEY_DUPLEX, 1, self.blue, 1)
+
+                    self.cars_prev = cars
 
                     if self.service_count:
-                        cv2.rectangle(frame, (20, 20), (40, 20), (255, 0, 0), 42)
-                        cv2.rectangle(frame, (20, 20), (40, 20), (255, 255, 255), 40)
-                        cv2.putText(frame, str(len(cars)), (20, 30), cv2.FONT_HERSHEY_DUPLEX, 1, (255, 0, 0), 2)
+                        cv2.rectangle(frame, (20, 20), (40, 20), self.blue, 42)
+                        cv2.rectangle(frame, (20, 20), (40, 20), self.white, 40)
+                        cv2.putText(frame, str(len(cars)), (20, 30), cv2.FONT_HERSHEY_DUPLEX, 1, self.blue, 2)
 
             self.frame_to_buf(frame=frame)
         else:
@@ -210,6 +231,16 @@ class BestApp(App):
 
     def rect_area(self, rect_pos):
         return (rect_pos[2] - rect_pos[0]) * (rect_pos[3] - rect_pos[1])
+
+    def closest_distance(self, car, car_set):
+        distance_closest = 10000000
+        for car_item in car_set:
+            distance = math.sqrt(((car[0]+car[2])-(car_item[0]+car_item[2]))**2 +
+                                 ((car[1]+car[3])-(car_item[1]+car_item[3]))**2)
+            if distance < distance_closest:
+                distance_closest = distance
+
+        return int(distance_closest*4)
 
     """ --------------------------------- Main Control ----------------------------------- """
     def on_resume(self):

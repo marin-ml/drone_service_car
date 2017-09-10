@@ -174,6 +174,11 @@ class BestApp(App):
                     for (x1, y1, x2, y2) in cars:
                         cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
+                    if self.service_count:
+                        cv2.rectangle(frame, (20, 20), (40, 20), (255, 0, 0), 42)
+                        cv2.rectangle(frame, (20, 20), (40, 20), (255, 255, 255), 40)
+                        cv2.putText(frame, str(len(cars)), (20, 30), cv2.FONT_HERSHEY_DUPLEX, 1, (255, 0, 0), 2)
+
             self.frame_to_buf(frame=frame)
         else:
             self.root.ids.img_video.source = 'logo/Background.jpg'

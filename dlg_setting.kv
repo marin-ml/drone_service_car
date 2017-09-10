@@ -95,13 +95,48 @@ Screen:
                     group: 'service'
                     text: 'Dense2'
                     font_size: 24
-                    on_press: app.on_sel_pro(3)
+                    on_press: app.on_sel_pro(4)
 
-            TextInput
-                font_size: 20
-                multiline: False
-                size_hint_y: None
-                height: 40
+            BoxLayout:
+                orientation: 'horizontal'
+                padding_x : 100
+                spacing : 100
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    CheckBox:
+                        id: check1
+                        color:(0, 0, 0.5, 1)
+                        on_press: app.on_sel_speed(check1.state)
+
+                    Label
+                        text: 'Speed Detection'
+                        color: (0, 0, 0.5, 1)
+                        font_size: 24
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    CheckBox:
+                        id: check2
+                        color:(0, 0, 0.5, 1)
+                        on_press: app.on_sel_count(check2.state)
+
+                    Label
+                        text: 'Enable Cars Count'
+                        color: (0, 0, 0.5, 1)
+                        font_size: 24
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    CheckBox:
+                        id: check3
+                        color:(0, 0, 0.5, 1)
+                        on_press: app.on_sel_alarm(check3.state)
+
+                    Label
+                        text: 'Enable Alarm'
+                        color: (0, 0, 0.5, 1)
+                        font_size: 24
 
         GridLayout:
             cols: 2

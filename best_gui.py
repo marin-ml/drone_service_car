@@ -38,6 +38,11 @@ class BestApp(App):
         self.fps = 30
         self.cam_ind = 0
         self.pro_ind = 0
+
+        self.service_speed = False
+        self.service_count = False
+        self.service_alarm = False
+
         self.str_src = ['Web Camera',
                         'IP Camera',
                         'Video',
@@ -53,7 +58,7 @@ class BestApp(App):
         self.on_resume()
         super(BestApp, self).__init__(**kwargs)
 
-    # --------------------------- Main Menu Event -----------------------------
+    """ --------------------------------- Main Menu Event -------------------------------- """
     def on_btn_start(self):
         if self.run_mode:
             self.btn_start_text = 'Resume'
@@ -81,7 +86,7 @@ class BestApp(App):
         self.on_close()
         exit(0)
 
-    # ---------------------- Camera Setting dialog Event ------------------------
+    """ ----------------------------- Camera Setting dialog Event --------------------------- """
     def on_sel_cam(self, cam_sel):
         self.cam_ind = cam_sel
         self.txt_cam_setting = self.cam_src[cam_sel]
@@ -97,11 +102,29 @@ class BestApp(App):
         self.title = 'Camera View'
         self.go_screen('dlg_menu', 'right')
 
+    def on_sel_speed(self, value):
+        if value == 'down':
+            self.service_speed = True
+        else:
+            self.service_speed = False
+
+    def on_sel_count(self, value):
+        if value == 'down':
+            self.service_count = True
+        else:
+            self.service_count = False
+
+    def on_sel_alarm(self, value):
+        if value == 'down':
+            self.service_alarm = True
+        else:
+            self.service_alarm = False
+
     def on_return(self):
         self.title = 'Camera View'
         self.go_screen('dlg_menu', 'right')
 
-    # ------------------------ Image Processing -------------------------------
+    """ --------------------------------- Image Processing ----------------------------------- """
     def _init_cv(self):
         if self.cam_setting == '0':
             self.capture = cv2.VideoCapture(0)
@@ -114,16 +137,6 @@ class BestApp(App):
             self.frameHeight = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
             # self.fps = self.capture.get(cv2.CV_CAP_PROP_FPS)
 
-    def on_resume(self):
-        if self.event_take_video is None:
-            self.event_take_video = Clock.schedule_interval(self.get_frame, 1.0 / self.fps)
-        elif not self.event_take_video.is_triggered:
-            self.event_take_video()
-
-    def on_stop(self):
-        if self.event_take_video is not None and self.event_take_video.is_triggered:
-            self.event_take_video.cancel()
-
     def get_frame(self, *args):
         ret, frame = self.capture.read()
 
@@ -131,7 +144,9 @@ class BestApp(App):
             frame = cv2.resize(frame, (720, 576))
 
             # ---------------- case of haar cascade car detection ----------------------
-            if self.pro_ind == 1:
+            if self.pro_ind == 0:
+                pass
+            elif self.pro_ind == 1:
                 cars = self.carCascade.detectMultiScale(
                     frame,
                     scaleFactor=1.1,
@@ -141,27 +156,21 @@ class BestApp(App):
 
                 for (x, y, w, h) in cars:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            else:
+                # ------------------- case of BackgroundSubtractorKNN -----------------------
+                if self.pro_ind == 2:
+                    _, cars = self.class_yolo.detect_cars(frame)
 
-            # ------------------- case of BackgroundSubtractorKNN -----------------------
-            elif self.pro_ind == 2:
-                _, cars = self.class_yolo.detect_cars(frame)
+                # ----------------------- case of Gunar Dense method 1 ------------------------
+                elif self.pro_ind == 3:
+                    cars = self.class_dense0.opt_flow_GUNNAR(frame)
 
-                for (x1, y1, x2, y2) in cars:
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
-
-            # ----------------------- case of Gunar Dense method 1 ------------------------
-            elif self.pro_ind == 3:
-                cars = self.class_dense0.opt_flow_GUNNAR(frame)
-
-                if cars is not None:
-                    for (x1, y1, x2, y2) in cars:
-                        cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
-
-            # ----------------------- case of Gunar Dense method 2 ------------------------
-            elif self.pro_ind == 3:
-                cars = self.class_dense1.opt_flow_GUNNAR(frame)
+                # ----------------------- case of Gunar Dense method 2 ------------------------
+                elif self.pro_ind == 4:
+                    cars = self.class_dense1.opt_flow_GUNNAR(frame)
 
                 if cars is not None:
+                    cars = self.filter_car(cars)
                     for (x1, y1, x2, y2) in cars:
                         cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
@@ -178,6 +187,35 @@ class BestApp(App):
         buf = buf1.tostring()
         self.root.ids.img_video.texture = Texture.create(size=(self.frameWidth, self.frameHeight))
         self.root.ids.img_video.texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
+
+    def filter_car(self, cars):
+        square = 0
+        for car_rect in cars:
+            car_square = self.rect_area(car_rect)
+            if car_square > square:
+                square = car_square
+
+        filters = []
+        for car_rect in cars:
+            car_square = self.rect_area(car_rect)
+            if car_square*5 > square:
+                filters.append(car_rect)
+
+        return filters
+
+    def rect_area(self, rect_pos):
+        return (rect_pos[2] - rect_pos[0]) * (rect_pos[3] - rect_pos[1])
+
+    """ --------------------------------- Main Control ----------------------------------- """
+    def on_resume(self):
+        if self.event_take_video is None:
+            self.event_take_video = Clock.schedule_interval(self.get_frame, 1.0 / self.fps)
+        elif not self.event_take_video.is_triggered:
+            self.event_take_video()
+
+    def on_stop(self):
+        if self.event_take_video is not None and self.event_take_video.is_triggered:
+            self.event_take_video.cancel()
 
     def on_close(self):
         self.capture.release()
@@ -196,6 +234,7 @@ class BestApp(App):
             screen = Builder.load_file(self.screen_names[i] + '.kv')
             self.screens[self.screen_names[i]] = screen
         return True
+
 
 if __name__ == '__main__':
     Config.set('graphics', 'width', '1000')
